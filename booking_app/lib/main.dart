@@ -13,7 +13,7 @@ class BookingApp extends StatelessWidget {
     return MaterialApp(
       title: 'Booking App',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const BookingListScreen(),
+      home: BookingListScreen(),  // <-- removed const here
     );
   }
 }

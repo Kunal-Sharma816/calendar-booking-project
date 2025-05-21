@@ -23,7 +23,11 @@ export const getBookingById = catchAsync(async (req, res, next) => {
 
 // POST /api/bookings - Create a new booking
 export const createBooking = catchAsync(async (req, res, next) => {
-  const { userId, startTime, endTime } = req.body;
+  const { userId, meetingRoomId, startTime, endTime } = req.body;
+
+  if (!["room1", "room2", "room3"].includes(meetingRoomId)) {
+    return next(new AppError("Invalid meeting room ID", 400));
+  }
 
   // Validate required fields
   if (!userId || !startTime || !endTime) {
@@ -42,18 +46,43 @@ export const createBooking = catchAsync(async (req, res, next) => {
     return next(new AppError("Start time must be before end time", 400));
   }
 
-  // Check for booking conflicts
-  const conflictingBooking = await findConflictingBooking(startTime, endTime);
+  // Pass userId correctly here
+  const conflictingBooking = await findConflictingBooking( meetingRoomId, start, end);
   if (conflictingBooking) {
-    return next(new AppError("Booking conflicts with an existing booking", 409));
+    return next(
+      new AppError(
+        `Booking conflict: You already have a booking from ${conflictingBooking.startTime} to ${conflictingBooking.endTime}`,
+        409
+      )
+    );
   }
 
   // Create the booking
   const newBooking = await bookingDetails.create({
     userId,
+    meetingRoomId,
     startTime,
     endTime,
   });
 
   res.status(201).json(newBooking);
 });
+
+
+// GET /api/booking/room/:meetingRoomId
+export const getBookingsByRoom = catchAsync(async (req, res, next) => {
+  const { meetingRoomId } = req.params;
+
+  const bookings = await bookingDetails.find({ meetingRoomId });
+
+  if (!bookings || bookings.length === 0) {
+    return next(new AppError("No bookings found for this meeting room", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    results: bookings.length,
+    data: bookings,
+  });
+});
+

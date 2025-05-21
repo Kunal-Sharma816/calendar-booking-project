@@ -25,43 +25,33 @@ class ApiService {
   /// Get booking by ID
   static Future<Booking?> getBookingById(String bookingId) async {
     try {
-      final response =
-          await http.get(Uri.parse('$baseUrl/$bookingId'));
-
-      if (response.statusCode == 200) {
-        return Booking.fromJson(json.decode(response.body));
-      } else {
-        return null;
-      }
+      final response = await http.get(Uri.parse('$baseUrl/$bookingId'));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return Booking.fromJson(data);
+    } else {
+      return null;
+    }
     } catch (e) {
       throw Exception('Error fetching booking by ID: $e');
     }
   }
 
   /// Create a new booking
-  static Future<Booking?> createBooking(
-      String userId, DateTime startTime, DateTime endTime) async {
-    try {
-      final response = await http.post(
-        Uri.parse(baseUrl),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({
-          'userId': userId,
-          'startTime': startTime.toUtc().toIso8601String(),
-          'endTime': endTime.toUtc().toIso8601String(),
-        }),
-      );
+  static Future<void> createBooking(String userId, DateTime startTime, DateTime endTime) async {
+  final response = await http.post(
+    Uri.parse(baseUrl),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      'userId': userId,
+      'startTime': startTime.toIso8601String(),
+      'endTime': endTime.toIso8601String(),
+    }),
+  );
 
-      if (response.statusCode == 201) {
-        return Booking.fromJson(json.decode(response.body));
-      } else {
-        throw Exception(
-            'Failed to create booking: ${response.statusCode} ${response.body}');
-      }
-    } catch (e) {
-      throw Exception('Error creating booking: $e');
-    }
+  if (response.statusCode != 201) {
+    final body = json.decode(response.body);
+    throw Exception(body['message'] ?? 'Failed to create booking');
   }
+}
 }

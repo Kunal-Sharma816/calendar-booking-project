@@ -1,9 +1,9 @@
-// services/bookingServices.services.js
-
+// services/checkConflict.js
 import bookingDetails from "../models/bookingModels.models.js";
 
-const findConflictingBooking = async (startTime, endTime) => {
+const findConflictingBooking = async ( meetingRoomId , startTime, endTime) => {
   return bookingDetails.findOne({
+    meetingRoomId,
     $or: [
       {
         startTime: { $lt: endTime },
