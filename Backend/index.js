@@ -1,8 +1,6 @@
 import express from "express"
 import dotenv from "dotenv"
 import morgan from "morgan";
-import mongoose from "mongoose";
-
 import connectDB from "./src/config/mongodb.config.js";
 import bookingRoutes from "./src/routes/bookingRoutes.routes.js"
 import globalErrorHandler from './src/middlewares/globalErrorHandler.js';

@@ -3,55 +3,62 @@ import 'package:http/http.dart' as http;
 import '../models/booking.dart';
 
 class ApiService {
-  // Update with your actual backend endpoint
-  static const String baseUrl = 'http://localhost:3000/api/bookings';
+  static const baseUrl = 'http://localhost:3000';
 
-  /// Get all bookings
-  static Future<List<Booking>> getAllBookings() async {
+  static Future<List<Booking>> fetchBookings() async {
+    final res = await http.get(Uri.parse('$baseUrl/bookings'));
+    if (res.statusCode == 200) {
+      final List jsonList = json.decode(res.body);
+      return jsonList.map((e) => Booking.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to load bookings');
+    }
+  }
+
+  static Future<Booking> fetchBookingId(String bookingId) async {
     try {
-      final response = await http.get(Uri.parse(baseUrl));
+      final res = await http.get(Uri.parse('$baseUrl/bookings/$bookingId'));
+      final responseBody = json.decode(res.body);
 
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        return data.map((json) => Booking.fromJson(json)).toList();
+      if (res.statusCode == 200) {
+        return Booking.fromJson(responseBody);
       } else {
-        throw Exception('Failed to load bookings');
+        throw Exception(responseBody['message'] ?? 'Booking not found');
       }
     } catch (e) {
-      throw Exception('Error fetching bookings: $e');
+      throw Exception('Failed to fetch booking: $e');
     }
   }
 
-  /// Get booking by ID
-  static Future<Booking?> getBookingById(String bookingId) async {
+
+
+  static Future<Map<String, dynamic>> createBooking(Booking booking) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$bookingId'));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return Booking.fromJson(data);
-    } else {
-      return null;
-    }
+      final res = await http.post(
+        Uri.parse('$baseUrl/bookings'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(booking.toJson()),
+      );
+
+      final responseBody = json.decode(res.body);
+
+      if (res.statusCode == 201) {
+        return {
+          'success': true,
+          'bookingId': responseBody['_id'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': responseBody['message'] ?? 'Failed to create booking',
+        };
+      }
     } catch (e) {
-      throw Exception('Error fetching booking by ID: $e');
+      return {
+        'success': false,
+        'error': 'Network error: $e',
+      };
     }
   }
 
-  /// Create a new booking
-  static Future<void> createBooking(String userId, DateTime startTime, DateTime endTime) async {
-  final response = await http.post(
-    Uri.parse(baseUrl),
-    headers: {'Content-Type': 'application/json'},
-    body: json.encode({
-      'userId': userId,
-      'startTime': startTime.toIso8601String(),
-      'endTime': endTime.toIso8601String(),
-    }),
-  );
-
-  if (response.statusCode != 201) {
-    final body = json.decode(response.body);
-    throw Exception(body['message'] ?? 'Failed to create booking');
-  }
-}
 }
