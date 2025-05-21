@@ -19,7 +19,7 @@ app.use(cors());
 app.use(express.json()) 
 app.use(morgan('dev'))
 
-app.use('/api/bookings' , bookingRoutes);
+app.use('/bookings' , bookingRoutes);
 
 app.use(notFound);
 app.use(globalErrorHandler);
