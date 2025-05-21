@@ -7,11 +7,14 @@ import connectDB from "./src/config/mongodb.config.js";
 import bookingRoutes from "./src/routes/bookingRoutes.routes.js"
 import globalErrorHandler from './src/middlewares/globalErrorHandler.js';
 import notFound from './src/middlewares/notfound.js'
+import cors from "cors"
+
 
 
 dotenv.config({path: "./.env"})
 
 const app = express();
+app.use(cors());
 
 app.use(express.json()) 
 app.use(morgan('dev'))
